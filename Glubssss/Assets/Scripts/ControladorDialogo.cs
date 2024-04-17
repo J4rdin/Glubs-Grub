@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,6 +28,12 @@ public class ControladorDialogo : MonoBehaviour
     bool dialogo_ended = false;
 
     public static string pedido = "";       //Pan - Carne - Salsa - Topping
+   
+    public int propinas = 3;
+    public int dinero = 0;
+
+    public int neutrochoice = 0;
+    bool pedido_entregable = false;
 
 
 
@@ -35,29 +42,23 @@ public class ControladorDialogo : MonoBehaviour
         GenerarEstado();  //Estados de animo
         ActivarImagenPedido(false);  //Desactivar las imágenes al principio
         ActivarBotonesRespuesta(false);  // Desactivar los botones al principio
-        MostrarSiguienteLinea();
+        MostrarSiguienteLinea();                
+        neutrochoice = Random.Range(0, 2); // 0 = Enfadado , 1 = Feliz      
     }
 
     void Update()
-    {
-        if(Player.item == pedido)
+    {      
+        // Detectar clic del mouse
+        if (Input.GetMouseButtonDown(0) && dialogo_ended == false)
         {
-            print("HELOOOOO????");
-            textoDialogo.text = "¡Muchas gracias!";
+            MostrarSiguienteLinea();
         }
-        else 
-        {
-            // Detectar clic del mouse
-            if (Input.GetMouseButtonDown(0) && dialogo_ended == false)
-            {
-                MostrarSiguienteLinea();
-            }
-        }
+      
     }
-
+  
     void MostrarSiguienteLinea()
     {
-        if (indiceLinea < lineasDialogo.Length)
+        if (indiceLinea < lineasDialogo.Length) //Muestra dialogo hasta el final
         {
             textoDialogo.text = lineasDialogo[indiceLinea];
             indiceLinea++;           
@@ -68,22 +69,80 @@ public class ControladorDialogo : MonoBehaviour
         }
     }
 
+    public void DarPedido()
+    { 
+        if (pedido_entregable == true)
+        {
+            StartCoroutine(ActivarPanel());
+            if (Player.item == pedido && pedido_entregable == true)
+            {
+                print("Bien????");
+                textoDialogo.text = "¡Muchas gracias!"; //Lo que dice al darle el pedido bien
+                dinero = dinero + 10 + propinas;
+            }
+            if (Player.item != pedido && pedido_entregable == true)
+            {
+                print("MAl????");
+                textoDialogo.text = "¡No es lo que he pedido chico!"; //Lo que dice al darle el pedido mal                
+                
+               
+            }
+
+        }
+        
+    }
+
+    IEnumerator ActivarPanel()
+    {
+        panel.gameObject.SetActive(true);
+        yield return new WaitForSeconds(3);
+        panel.gameObject.SetActive(false);
+    }
     public void SeleccionarRespuesta(int respuestaIndex)
     {
         // Lógica para cada respuesta
+        
         switch (respuestaIndex)
         {
             case 0:
-                // Acciones para la primera respuesta
+                // Acciones para la primera respuesta /Enfadado
                 print("Opcion 1");
+
+                if (estado_animo == 3) //Si elige enfadado
+                {
+                    propinas *= 2;
+                }    
+                if (estado_animo == 2 && neutrochoice == 0) //Neutro elige enfadado
+                {
+                    propinas *= 4;
+                }
+                if (estado_animo == 1) //Si elige feliz
+                {
+                    propinas = 0;
+                }
+
                 break;
             case 1:
-                // Acciones para la segunda respuesta
-                print("Opcion 2");
+                // Acciones para la segunda respuesta /Neutro
+                print("Opcion 2");              
+               
                 break;
             case 2:
-                // Acciones para la tercera respuesta
+                // Acciones para la tercera respuesta /Feliz
                 print("Opcion 3");
+
+                if (estado_animo == 1) //Si elige feliz
+                {
+                    propinas *= 2;
+                }
+                if (estado_animo == 2 && neutrochoice == 1) //Neutro elige feliz
+                {
+                    propinas *= 4;
+                }
+                if(estado_animo == 3) //Si elige triste
+                {
+                    propinas = 0;
+                }
                 break;
         }
 
@@ -188,6 +247,7 @@ public class ControladorDialogo : MonoBehaviour
 
        
         print(pedido);
+        pedido_entregable = true;
  
     }
 
